@@ -1,6 +1,7 @@
+// app/api/items/route.ts
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sanitizeItemInput } from "@/lib/sanitizeItem";
+import { sanitizeInventoryItem } from "@/lib/sanitizeInventoryItem";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL!;
 const key =
@@ -13,18 +14,20 @@ const supabase = createClient(url, key);
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const data = sanitizeItemInput(body); // strips total_value; "" price -> null
+  const data = sanitizeInventoryItem(body); // strips total_value, blank price -> null
 
   if (!data.name) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 });
   }
 
   const { error, data: inserted } = await supabase
-    .from("inventory_items")     // <-- your real table
+    .from("inventory_items")
     .insert(data)
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 400 });
+  }
   return NextResponse.json(inserted, { status: 201 });
 }
