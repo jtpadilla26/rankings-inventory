@@ -29,3 +29,29 @@ export interface StockTransaction {
   reference_id: string | null; // PO#, checkout#, etc
   created_at: string;
 }
+
+export interface Location {
+  id: string;
+  name: string;
+  description?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface CheckoutRecord {
+  id: string;
+  user_id: string;
+  purpose: string;
+  return_date: string | null;
+  notes?: string | null;
+  created_at: string;
+}
+
+export interface CheckoutLineItem {
+  id: string;
+  checkout_id: string;
+  item_id: string;
+  location_id: string;
+  quantity: number;
+  created_at: string;
+}
