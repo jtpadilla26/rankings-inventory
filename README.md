@@ -12,6 +12,6 @@
 - `middleware.ts` Simple auth gate (looks for Supabase cookies)
 
 ## Next
-- Wire Supabase auth (`@supabase/auth-helpers-nextjs`)
+- Wire Supabase auth (`@supabase/ssr`)
 - Add inventory pages (list + import/export)
 - Add Zod validation and dropdown export for category/unit
