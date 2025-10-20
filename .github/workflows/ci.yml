@@ -1,31 +1,18 @@
 name: CI
 on:
-  pull_request:
-  push:
-    branches: [main]
+  pull_request:      # run on PRs only
+  # push:            # (comment this out to avoid running on every push to main)
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-
-      - name: Use public npm registry
-        run: npm config set registry https://registry.npmjs.org/
-
+        with: { node-version: 20, cache: 'npm' }
+      - run: npm config set registry https://registry.npmjs.org/
       - name: Install deps
         run: |
-          if [ -f package-lock.json ]; then
-            npm ci
-          else
-            npm install
-          fi
-
-      - name: Typecheck
-        run: npm run typecheck --if-present
-
-      - name: Build
-        run: npm run build
+          if [ -f package-lock.json ]; then npm ci; else npm install; fi
+      - run: npm run typecheck --if-present
+      - run: npm run build
