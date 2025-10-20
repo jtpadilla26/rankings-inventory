@@ -1,26 +1,58 @@
 // app/api/items/[id]/route.ts
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { sanitizeItemInput } from "@/lib/sanitizeItem";
+import { NextResponse } from 'next/server';
 
-const url =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL!;
-const key =
-  process.env.SUPABASE_SERVICE_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY!;
+import { createServerClient } from '@/lib/supabase/server';
+import { sanitizeInventoryItem } from '@/lib/sanitizeInventoryItem';
 
-const supabase = createClient(url, key);
-
-export async function PUT(_req: Request, ctx: { params: { id: string } }) {
-  const id = ctx.params.id;
-  const body = await _req.json();
-  const { id: _strip, ...data } = sanitizeItemInput({ ...body, id }); // strip `id` from update payload
-
-  const { error, data: updated } = await supabase.from("items").update(data).eq("id", id).select().single();
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+function validateInventoryItemInput(data: ReturnType<typeof sanitizeInventoryItem>): string | null {
+  if (!data.name) {
+    return 'Name is required';
   }
-  return NextResponse.json(updated, { status: 200 });
+
+  return null;
+}
+
+interface RouteContext {
+  params: { id: string };
+}
+
+export async function PUT(req: Request, ctx: RouteContext) {
+  try {
+    const id = ctx?.params?.id;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Item ID is required' }, { status: 400 });
+    }
+
+    const body = await req.json();
+    const sanitized = sanitizeInventoryItem({ ...body, id });
+    const validationError = validateInventoryItemInput(sanitized);
+
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    const { id: _strip, ...payload } = sanitized;
+
+    const supabase = createServerClient();
+    const { data: updated, error } = await supabase
+      .from('inventory_items')
+      .update(payload)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Item not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(updated, { status: 200 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unexpected server error';
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

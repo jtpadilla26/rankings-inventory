@@ -1,33 +1,46 @@
 // app/api/items/route.ts
-import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-import { sanitizeInventoryItem } from "@/lib/sanitizeInventoryItem";
+import { NextResponse } from 'next/server';
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL!;
-const key =
-  process.env.SUPABASE_SERVICE_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY!;
+import { createServerClient } from '@/lib/supabase/server';
+import { sanitizeInventoryItem } from '@/lib/sanitizeInventoryItem';
 
-const supabase = createClient(url, key);
+function validateInventoryItemInput(data: ReturnType<typeof sanitizeInventoryItem>): string | null {
+  if (!data.name) {
+    return 'Name is required';
+  }
+
+  return null;
+}
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const data = sanitizeInventoryItem(body); // strips total_value, blank price -> null
+  try {
+    const body = await req.json();
+    const sanitized = sanitizeInventoryItem(body);
+    const validationError = validateInventoryItemInput(sanitized);
 
-  if (!data.name) {
-    return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    const { id: _ignore, ...payload } = sanitized;
+
+    const supabase = createServerClient();
+    const { data: inserted, error } = await supabase
+      .from('inventory_items')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error || !inserted) {
+      return NextResponse.json(
+        { error: error?.message ?? 'Failed to create inventory item' },
+        { status: 400 },
+      );
+    }
+
+    return NextResponse.json(inserted, { status: 201 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unexpected server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const { error, data: inserted } = await supabase
-    .from("inventory_items")
-    .insert(data)
-    .select()
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
-  }
-  return NextResponse.json(inserted, { status: 201 });
 }
