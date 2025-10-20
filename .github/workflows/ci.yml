@@ -2,7 +2,7 @@ name: CI
 on:
   pull_request:      # run on PRs only
   # push:            # (comment this out to avoid running on every push to main)
-
+if [ -f package-lock.json ]; then npm ci; else npm install; fi
 jobs:
   build:
     runs-on: ubuntu-latest
