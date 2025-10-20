@@ -1,5 +1,5 @@
 {
-  "name": "rankins-inventory",
+  "name": "rankings-inventory",
   "version": "1.0.0",
   "private": true,
   "description": "Inventory Management System for Rankins Test Plot Berry R&D",
@@ -15,8 +15,6 @@
     "db:seed": "supabase db seed"
   },
   "dependencies": {
-    "xlsx": "^0.18.5"
-    "xlsx-populate": "^1.21.0"
     "@hookform/resolvers": "^3.3.4",
     "@radix-ui/react-alert-dialog": "^1.0.5",
     "@radix-ui/react-checkbox": "^1.0.4",
@@ -38,7 +36,9 @@
     "cmdk": "^0.2.0",
     "date-fns": "^3.2.0",
     "framer-motion": "^10.18.0",
+    "ioredis": "^5.3.2",
     "lucide-react": "^0.309.0",
+    "lru-cache": "^10.1.0",
     "next": "14.0.4",
     "next-themes": "^0.2.1",
     "papaparse": "^5.4.1",
@@ -50,6 +50,7 @@
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "xlsx": "^0.18.5",
+    "xlsx-populate": "^1.21.0",
     "zod": "^3.22.4",
     "zustand": "^4.4.7"
   },
@@ -75,3 +76,4 @@
   "engines": {
     "node": ">=18.0.0"
   }
+}
