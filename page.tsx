@@ -1,1 +1,0 @@
-export default function Home(){return <div className="p-6">Welcome. Redirecting to dashboard…</div>; }
