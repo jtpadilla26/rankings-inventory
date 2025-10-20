@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 const PUBLIC_FILE = /\.(.*)$/;
-const PUBLIC_PATHS = ["/login", "/api/auth"]; // allow NextAuth/Supabase callbacks if added
+const PUBLIC_PATHS = ["/login", "/api/auth"];
 
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -20,4 +20,4 @@ export function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ["/((?!api/auth|_next|.*\\..*).*)"] };
+export const config = { matcher: ["/((?!api/auth|_next|.*\..*).*)"] };
