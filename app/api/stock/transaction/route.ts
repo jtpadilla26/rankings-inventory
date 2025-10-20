@@ -1,7 +1,7 @@
 // app/api/stock/transaction/route.ts
 import { NextResponse } from 'next/server';
 
-import { rateLimit } from '@/rate-limiter';
+import { rateLimit } from "@/lib/rate-limiter";
 import { createServerClient, getServerSession } from '@/lib/supabase/server';
 
 const limiter = rateLimit({ limit: 100 });
