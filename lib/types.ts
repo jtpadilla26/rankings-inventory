@@ -9,6 +9,7 @@ export type InventoryItem = {
   location: string | null;
   // NEW:
   low_stock_threshold: number | null;
+  effective_threshold?: number | null;
   is_low_stock?: boolean | null;
 
   date_added: string | null;

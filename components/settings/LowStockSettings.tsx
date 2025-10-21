@@ -4,7 +4,6 @@ import useSWR from 'swr';
 import { useState } from 'react';
 
 type CatRow = { category: string; default_threshold: number | null };
-
 const fetcher = (url: string) => fetch(url).then(r => r.json());
 
 export default function LowStockSettings() {
@@ -15,7 +14,7 @@ export default function LowStockSettings() {
     setSaving(category);
     const payload = {
       category,
-      default_threshold: val === '' ? null : Number(val.replace(/[^\d.\-]/g, '')),
+      default_threshold: val.trim() === '' ? null : Number(val.replace(/[^\d.\-]/g, '')),
     };
     await fetch('/api/thresholds', {
       method: 'POST',
@@ -46,9 +45,7 @@ export default function LowStockSettings() {
               defaultValue={row.default_threshold == null ? '' : String(row.default_threshold)}
               onBlur={(e) => save(row.category, e.target.value)}
             />
-            {saving === row.category ? (
-              <span className="text-xs text-muted-foreground">Saving…</span>
-            ) : null}
+            {saving === row.category ? <span className="text-xs text-muted-foreground">Saving…</span> : null}
           </div>
         ))}
       </div>

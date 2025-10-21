@@ -1,13 +1,7 @@
 // lib/importers/items.ts
 import * as XLSX from "xlsx";
 import { sanitizeItemInput } from "@/lib/sanitizeItem";
-import { createClient } from "@supabase/supabase-js";
-
-// Use client creds (browser)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import { supabase } from "@/lib/supabase/client";
 
 // Helpers: case-insensitive maps
 const norm = (s?: string) => (s ?? "").trim().replace(/\s+/g, " ");

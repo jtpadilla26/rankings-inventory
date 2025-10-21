@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { Manrope } from 'next/font/google';
 
 import './globals.css';
@@ -41,7 +42,26 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            {children}
+            <div className="min-h-screen bg-background text-foreground">
+              <header className="border-b bg-card/50 backdrop-blur">
+                <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+                  <Link href="/" className="text-lg font-semibold">
+                    Rankins Inventory
+                  </Link>
+                  <nav className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <Link href="/inventory" className="hover:text-foreground transition-colors">
+                      Inventory
+                    </Link>
+                    <Link href="/settings/low-stock" className="hover:text-foreground transition-colors">
+                      Stock Rules
+                    </Link>
+                  </nav>
+                </div>
+              </header>
+              <div className="mx-auto w-full max-w-5xl">
+                {children}
+              </div>
+            </div>
             <Toaster />
           </QueryProvider>
         </ThemeProvider>
