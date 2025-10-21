@@ -11,6 +11,7 @@ export async function createInventoryItem(formData: FormData) {
     unit_type: formData.get('unit_type'),
     price_per_unit: formData.get('price_per_unit'),
     location: formData.get('location'),
+    low_stock_threshold: formData.get('low_stock_threshold'),
     date_added: formData.get('date_added'),
     notes: formData.get('notes'),
     expiration_date: formData.get('expiration_date'),

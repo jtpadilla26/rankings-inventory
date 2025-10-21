@@ -10,15 +10,13 @@ export async function GET() {
   return NextResponse.json(data);
 }
 
-export async function POST(req: Request) {
-  const body = await req.json(); // { category: string, default_threshold: number|null }
-  const { category, default_threshold } = body ?? {};
-  if (!category) return NextResponse.json({ error: 'category required' }, { status: 400 });
+export async function POST(request: Request) {
+  const { category, default_threshold } = await request.json();
+  if (!category) return NextResponse.json({ error: 'Category is required' }, { status: 400 });
 
   const { error } = await supabase
     .from('category_thresholds')
     .upsert({ category, default_threshold }, { onConflict: 'category' });
-
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

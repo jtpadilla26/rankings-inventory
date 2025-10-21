@@ -1,15 +1,12 @@
 'use client';
-
 import useSWR from 'swr';
+
 const fetcher = (u: string) => fetch(u).then(r => r.json());
 
-type Summary = { low_stock_count: number };
-
 export default function LowStockCard() {
-  const { data, error, isLoading } = useSWR<Summary>('/api/inventory/summary', fetcher, {
+  const { data, error, isLoading } = useSWR<{ low_stock_count: number }>('/api/inventory/summary', fetcher, {
     revalidateOnFocus: true,
   });
-
   if (isLoading) return <div className="text-muted-foreground">Loading…</div>;
   if (error || !data) return <div className="text-red-600">Failed to load</div>;
 

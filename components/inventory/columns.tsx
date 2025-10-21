@@ -1,30 +1,21 @@
 'use client';
-import { ColumnDef } from '@tanstack/react-table';
+
 import { useState } from 'react';
+import Link from 'next/link';
+import type { ColumnDef } from '@tanstack/react-table';
+
 import { supabase } from '@/lib/supabase/client';
 import { gbp } from '@/lib/currency';
+import type { InventoryItem } from '@/lib/types';
 
-type Item = {
-  id: string;
-  name: string;
-  category: string;
-  units: number;
-  unit_type: string | null;
-  price_per_unit: number;
-  total_value: number | null;
-  low_stock_threshold: number | null;   // editable (per-item)
-  effective_threshold?: number | null;  // from the view
-  is_low_stock?: boolean | null;        // from the view
-};
-
-function ThresholdCell({ row }: any) {
-  const item = row.original as Item;
+export function ThresholdCell({ row }: any) {
+  const item = row.original as { id: string; low_stock_threshold: number | null };
   const [val, setVal] = useState(item.low_stock_threshold == null ? '' : String(item.low_stock_threshold));
   const [saving, setSaving] = useState(false);
 
   const save = async () => {
     setSaving(true);
-    const parsed = val === '' ? null : Number(val.replace(/[^\d.\-]/g, ''));
+    const parsed = val.trim() === '' ? null : Number(val.replace(/[^\d.\-]/g, ''));
     await supabase.from('inventory_items').update({ low_stock_threshold: parsed }).eq('id', item.id);
     setSaving(false);
   };
@@ -48,22 +39,44 @@ function LowBadge({ low }: { low: boolean | null | undefined }) {
   return <span className="ml-2 rounded-full bg-red-100 text-red-700 text-xs px-2 py-0.5">Low</span>;
 }
 
-export const inventoryColumns: ColumnDef<Item>[] = [
-  { header: 'Item', accessorKey: 'name',
+export const inventoryColumns: ColumnDef<InventoryItem>[] = [
+  {
+    header: 'Item',
+    accessorKey: 'name',
     cell: ({ row, getValue }) => (
       <div className="flex items-center">
         <span>{String(getValue() ?? '')}</span>
         <LowBadge low={row.original.is_low_stock} />
       </div>
-    )
+    ),
   },
   { header: 'Category', accessorKey: 'category' },
-  { header: 'Units', accessorKey: 'units', cell: ({ getValue }) => Number(getValue() ?? 0).toLocaleString('en-GB') },
+  {
+    header: 'Units',
+    accessorKey: 'units',
+    cell: ({ getValue }) => Number(getValue() ?? 0).toLocaleString('en-GB'),
+  },
   { header: 'Unit', accessorKey: 'unit_type' },
-  { header: 'Price', accessorKey: 'price_per_unit', cell: ({ getValue }) => gbp.format(Number(getValue() ?? 0)) },
-  { header: 'Total Value', accessorKey: 'total_value', cell: ({ row }) => gbp.format(Number(row.original.total_value ?? row.original.price_per_unit * row.original.units)) },
-  // NEW
+  {
+    header: 'Price',
+    accessorKey: 'price_per_unit',
+    cell: ({ getValue }) => gbp.format(Number(getValue() ?? 0)),
+  },
+  {
+    header: 'Total Value',
+    accessorKey: 'total_value',
+    cell: ({ row }) =>
+      gbp.format(Number(row.original.total_value ?? row.original.price_per_unit * row.original.units)),
+  },
+  { header: 'Effective Threshold', accessorKey: 'effective_threshold' },
   { header: 'Low-stock Threshold', cell: ThresholdCell },
-  { header: 'Effective Threshold', accessorKey: 'effective_threshold' }, // read-only from view (optional)
   { header: 'Location', accessorKey: 'location' },
+  {
+    header: 'Actions',
+    cell: ({ row }) => (
+      <Link href={`/inventory/${row.original.id}/edit`} className="text-sm text-primary hover:underline">
+        Edit
+      </Link>
+    ),
+  },
 ];

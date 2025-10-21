@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase/client';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import { inventoryColumns } from '@/components/inventory/columns';
+import type { InventoryItem } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -14,7 +15,7 @@ export default async function InventoryPage() {
   return (
     <main className="p-6 space-y-6">
       <h1 className="text-2xl font-semibold">Inventory</h1>
-      <InventoryTable data={(data as any) ?? []} columns={inventoryColumns} />
+      <InventoryTable data={(data as InventoryItem[]) ?? []} columns={inventoryColumns} />
     </main>
   );
 }

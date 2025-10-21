@@ -7,6 +7,7 @@ type InventorySummary = {
   total_inventory_value: number;
   total_items: number;
   total_units: number;
+  low_stock_count?: number;
 };
 
 const fetcher = (url: string) => fetch(url).then(r => r.json());
