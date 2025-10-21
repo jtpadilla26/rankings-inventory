@@ -2,11 +2,15 @@ export type InventoryItem = {
   id: string;
   name: string;
   category: string | null;
-  units: number;               // numeric(12,3)
+  units: number;
   unit_type: string | null;
-  price_per_unit: number;      // numeric(12,2)
-  total_value?: number | null; // generated column
+  price_per_unit: number;
+  total_value?: number | null;
   location: string | null;
+  // NEW:
+  low_stock_threshold: number | null;
+  is_low_stock?: boolean | null;
+
   date_added: string | null;
   notes: string | null;
   inserted_at: string | null;
@@ -18,7 +22,8 @@ export type InventoryItem = {
 };
 
 export type InventorySummary = {
-  total_inventory_value: number; // numeric(14,2)
-  total_items: number;           // int
-  total_units: number;           // numeric(14,3)
+  total_inventory_value: number;
+  total_items: number;
+  total_units: number;
+  low_stock_count: number; // NEW
 };
