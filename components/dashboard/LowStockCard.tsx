@@ -1,23 +1,23 @@
 'use client';
 
 import useSWR from 'swr';
+const fetcher = (u: string) => fetch(u).then(r => r.json());
 
-type InventorySummary = {
-  low_stock_count: number;
-};
-
-const fetcher = (url: string) => fetch(url).then(r => r.json());
+type Summary = { low_stock_count: number };
 
 export default function LowStockCard() {
-  const { data, error, isLoading } = useSWR<InventorySummary>('/api/inventory/summary', fetcher);
+  const { data, error, isLoading } = useSWR<Summary>('/api/inventory/summary', fetcher, {
+    revalidateOnFocus: true,
+  });
+
   if (isLoading) return <div className="text-muted-foreground">Loading…</div>;
   if (error || !data) return <div className="text-red-600">Failed to load</div>;
 
   return (
     <div className="rounded-2xl p-4 shadow-sm border bg-card">
-      <div className="text-sm text-muted-foreground">Low-stock Items</div>
+      <div className="text-sm text-muted-foreground">Items with Low Stock</div>
       <div className="mt-1 text-3xl font-semibold">{data.low_stock_count ?? 0}</div>
-      <div className="mt-2 text-xs text-muted-foreground">Thresholds you set, only</div>
+      <div className="mt-2 text-xs text-muted-foreground">Based on per-item or category thresholds</div>
     </div>
   );
 }
