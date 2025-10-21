@@ -1,4 +1,5 @@
 import TotalInventoryValueCard from '@/components/dashboard/TotalInventoryValueCard';
+import LowStockCard from '@/components/dashboard/LowStockCard';
 
 export default function DashboardPage() {
   return (
@@ -6,7 +7,8 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-semibold">Dashboard</h1>
       <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
         <TotalInventoryValueCard />
-        {/* Add more KPIs here (items count, low stock, etc.) */}
+        <LowStockCard />
+        {/* Add other KPIs */}
       </div>
     </main>
   );
