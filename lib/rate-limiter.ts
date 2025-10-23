@@ -1,38 +1,61 @@
-// Simple in-memory sliding-window limiter (per key).
-// Usage: const r = rateLimit(key, { limit: 20, windowMs: 60_000 });
+// lib/rate-limiter.ts
+// Backward-compatible rate limiter that supports both styles:
+//
+// A) Old style:
+//    const limiter = rateLimit({ limit: 5, windowMs: 60_000 });
+//    limiter.check("ip-or-user-id");
+//
+// B) Direct style (also OK):
+//    const r = rateLimit("ip-or-user-id", { limit: 5, windowMs: 60_000 });
+//    if (!r.ok) ... r.resetMs
 
-type Options = { limit?: number; windowMs?: number };
-const hits = new Map<string, number[]>();
+export type RateLimitOptions = {
+  limit?: number;
+  windowMs?: number;
+};
 
-export function rateLimit(key: string, opts: Options = {}) {
-  const limit = opts.limit ?? 20;
-  const windowMs = opts.windowMs ?? 60_000;
+type HitStore = Map<string, number[]>;
+const STORE: HitStore = new Map();
+
+type Result = {
+  ok: boolean;
+  remaining: number;
+  resetMs: number;
+  limit: number;
+  count: number;
+  check: (key?: string, opts?: RateLimitOptions) => Result;
+};
+
+function compute(key: string, opts: RateLimitOptions = {}): Result {
+  const limit = Number.isFinite(opts.limit as number) ? (opts.limit as number) : 20;
+  const windowMs = Number.isFinite(opts.windowMs as number) ? (opts.windowMs as number) : 60_000;
 
   const now = Date.now();
-  const cutoff = now - windowMs;
+  const windowStart = now - windowMs;
 
-  const arr = hits.get(key)?.filter((t) => t > cutoff) ?? [];
-  if (arr.length >= limit) {
-    const resetInMs = Math.max(0, windowMs - (now - arr[0]));
-    return { allowed: false, remaining: 0, resetInMs };
-  }
+  const list = STORE.get(key) ?? [];
+  const recent = list.filter((ts) => ts > windowStart);
+  recent.push(now);
+  STORE.set(key, recent);
 
-  arr.push(now);
-  hits.set(key, arr);
+  const count = recent.length;
+  const ok = count <= limit;
+  const oldest = recent[0] ?? now;
+  const resetMs = Math.max(0, windowMs - (now - oldest));
+  const remaining = Math.max(0, limit - count);
 
-  return { allowed: true, remaining: Math.max(0, limit - arr.length), resetInMs: 0 };
+  const check = (k = key, extra?: RateLimitOptions) => compute(k, { limit, windowMs, ...extra });
+
+  return { ok, remaining, resetMs, limit, count, check };
 }
 
-type Options = { limit?: number; windowMs?: number };
-const hits = new Map<string, number[]>();
-export function rateLimit(key: string, opts: Options = {}) {
-  const limit = opts.limit ?? 20, windowMs = opts.windowMs ?? 60_000;
-  const now = Date.now(), cutoff = now - windowMs;
-  const arr = hits.get(key)?.filter(t => t > cutoff) ?? [];
-  if (arr.length >= limit) {
-    const resetInMs = Math.max(0, windowMs - (now - arr[0]));
-    return { allowed: false, remaining: 0, resetInMs };
-  }
-  arr.push(now); hits.set(key, arr);
-  return { allowed: true, remaining: Math.max(0, limit - arr.length), resetInMs: 0 };
+// Overload: (key, opts) OR (opts) -> { check(...) }
+export function rateLimit(key: string, opts?: RateLimitOptions): Result;
+export function rateLimit(opts: RateLimitOptions): { check: (key: string, opts?: RateLimitOptions) => Result };
+export function rateLimit(a: string | RateLimitOptions, b?: RateLimitOptions): any {
+  if (typeof a === 'string') return compute(a, b);
+  const base = a || {};
+  return {
+    check: (key: string, extra?: RateLimitOptions) => compute(key, { ...base, ...extra }),
+  };
 }
