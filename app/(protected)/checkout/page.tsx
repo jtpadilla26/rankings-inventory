@@ -116,12 +116,13 @@ export default function CheckoutPage() {
     <main className="mx-auto max-w-3xl p-6 space-y-6">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Checkout</h1>
-        <Link
-          href="/dashboard"
-          className="text-sm underline underline-offset-4 hover:opacity-80"
-        >
-          Back to Dashboard
-        </Link>
+       <Link
+  href="/inventory"
+  className="text-sm underline underline-offset-4 hover:opacity-80"
+>
+  Back to Inventory
+</Link>
+
       </header>
 
       {itemsState.status === 'loading' && (
