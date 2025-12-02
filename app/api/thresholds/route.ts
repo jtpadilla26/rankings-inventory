@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 
+// GET: return one row per category that exists in inventory_items,
+// merged with any saved thresholds in category_thresholds.
 export async function GET() {
-  // 1) Get categories from inventory_items
+  const supabase = createServerClient();
+
+  // 1) Get all categories in use in the inventory
   const { data: itemRows, error: itemsError } = await supabase
     .from('inventory_items')
     .select('category');
@@ -11,7 +15,7 @@ export async function GET() {
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
   }
 
-  // 2) Get existing thresholds
+  // 2) Get existing category thresholds
   const { data: thresholdRows, error: thresholdsError } = await supabase
     .from('category_thresholds')
     .select('*');
@@ -20,16 +24,17 @@ export async function GET() {
     return NextResponse.json({ error: thresholdsError.message }, { status: 500 });
   }
 
+  // Build a map: category -> default_threshold
   const thresholdMap = new Map<string, number | null>();
   (thresholdRows ?? []).forEach((row: any) => {
     thresholdMap.set(row.category, row.default_threshold);
   });
 
-  // Distinct non-empty categories from items
+  // Distinct, non-empty categories
   const categories = Array.from(
     new Set(
       (itemRows ?? [])
-        .map((r: any) => r.category as string | null)
+        .map((r: any) => (r.category == null ? null : String(r.category)))
         .filter((c): c is string => !!c && c.trim().length > 0)
     )
   ).sort();
@@ -44,7 +49,10 @@ export async function GET() {
   return NextResponse.json(result);
 }
 
+// POST: upsert a single category threshold
 export async function POST(request: Request) {
+  const supabase = createServerClient();
+
   const body = await request.json().catch(() => ({} as any));
   const { category, default_threshold } = body as {
     category?: string;
@@ -63,7 +71,10 @@ export async function POST(request: Request) {
 
   const { error } = await supabase
     .from('category_thresholds')
-    .upsert({ category, default_threshold: value }, { onConflict: 'category' });
+    .upsert(
+      { category, default_threshold: value },
+      { onConflict: 'category' }
+    );
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
