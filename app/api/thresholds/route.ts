@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { supabase } from '@/lib/supabase/client';
 
 export async function GET() {
-  const supabase = createServerClient();
-
   // 1) Get categories from inventory_items
   const { data: itemRows, error: itemsError } = await supabase
     .from('inventory_items')
-    .select('category')
-    .order('category', { ascending: true });
+    .select('category');
 
   if (itemsError) {
     return NextResponse.json({ error: itemsError.message }, { status: 500 });
@@ -28,11 +25,11 @@ export async function GET() {
     thresholdMap.set(row.category, row.default_threshold);
   });
 
-  // Distinct non-null, non-empty categories
+  // Distinct non-empty categories from items
   const categories = Array.from(
     new Set(
       (itemRows ?? [])
-        .map((row: any) => row.category as string | null)
+        .map((r: any) => r.category as string | null)
         .filter((c): c is string => !!c && c.trim().length > 0)
     )
   ).sort();
@@ -48,11 +45,10 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const supabase = createServerClient();
   const body = await request.json().catch(() => ({} as any));
   const { category, default_threshold } = body as {
     category?: string;
-    default_threshold?: number | null;
+    default_threshold?: number | null | string;
   };
 
   if (!category || typeof category !== 'string') {
@@ -67,10 +63,7 @@ export async function POST(request: Request) {
 
   const { error } = await supabase
     .from('category_thresholds')
-    .upsert(
-      { category, default_threshold: value },
-      { onConflict: 'category' }
-    );
+    .upsert({ category, default_threshold: value }, { onConflict: 'category' });
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
