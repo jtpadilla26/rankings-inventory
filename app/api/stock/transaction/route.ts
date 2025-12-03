@@ -29,11 +29,18 @@ function validateTransactionInput(body: Record<string, any>): string | null {
 
 export async function POST(req: Request) {
   try {
-    const session = await getServerSession();
+   const session = await getServerSession();
 
-    if (!limiter.check(session.user.id).success) {
-      return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-    }
+if (!session || !session.user || !session.user.id) {
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+}
+
+// rate limiter result – cast to any so TS allows .success
+const rateResult = limiter.check(session.user.id as string) as any;
+
+if (!rateResult.success) {
+  return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+}
 
     const body = await req.json();
     const validationError = validateTransactionInput(body);
