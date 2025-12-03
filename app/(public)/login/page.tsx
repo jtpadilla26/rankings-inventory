@@ -71,7 +71,7 @@ export default function LoginPage() {
           description: 'You have successfully logged in.',
         });
 
-        router.push('/dashboard');
+      router.push('/');
         router.refresh();
       }
     } catch (err) {
