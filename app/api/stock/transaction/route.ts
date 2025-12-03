@@ -35,6 +35,13 @@ if (!session || !session.user || !session.user.id) {
   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }
 
+// Use the rate limiter's real return shape: Result.ok
+const rateResult = limiter.check(session.user.id as string);
+
+if (!rateResult.ok) {
+  return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
+}
+
 // rate limiter result – cast to any so TS allows .success
 const rateResult = limiter.check(session.user.id as string) as any;
 
