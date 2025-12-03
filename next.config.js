@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  experimental: { typedRoutes: true },
-  redirects: async () => [
-    { source: "/", destination: "/dashboard", permanent: false }
-  ]
+  experimental: {
+    typedRoutes: false,
+    // keep any other experimental flags you might have
+  },
+  // ...rest
 };
+
 module.exports = nextConfig;
