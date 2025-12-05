@@ -1,7 +1,7 @@
 // app/api/stock/transaction/route.ts
 import { NextResponse } from 'next/server';
 
-import { rateLimit } from "@/lib/rate-limiter";
+import { rateLimit } from '@/lib/rate-limiter';
 import { createServerClient, getServerSession } from '@/lib/supabase/server';
 
 const limiter = rateLimit({ limit: 100 });
@@ -29,33 +29,22 @@ function validateTransactionInput(body: Record<string, any>): string | null {
 
 export async function POST(req: Request) {
   try {
-   const session = await getServerSession();
+    const session = await getServerSession();
 
-if (!session || !session.user || !session.user.id) {
-  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-}
+    // Validate session
+    if (!session || !session.user || !session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-// Use the rate limiter's real return shape: Result.ok
-const rateResult = limiter.check(session.user.id as string);
+    // RATE LIMIT CHECK — uses .ok instead of .success
+    const rateResult = limiter.check(session.user.id as string);
 
-if (!rateResult.ok) {
-  return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-}
-
-
-// Use the rate limiter's real return shape: Result.ok
-const rateResult = limiter.check(session.user.id as string);
-
-if (!rateResult.ok) {
-  return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-}
-
-// rate limiter result – cast to any so TS allows .success
-const rateResult = limiter.check(session.user.id as string) as any;
-
-if (!rateResult.success) {
-  return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-}
+    if (!rateResult.ok) {
+      return NextResponse.json(
+        { error: 'Rate limit exceeded' },
+        { status: 429 }
+      );
+    }
 
     const body = await req.json();
     const validationError = validateTransactionInput(body);
@@ -71,7 +60,10 @@ if (!rateResult.success) {
         : Number(body.unit_cost);
 
     if (unitCost !== null && !Number.isFinite(unitCost)) {
-      return NextResponse.json({ error: 'Unit cost must be numeric' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Unit cost must be numeric' },
+        { status: 400 }
+      );
     }
 
     const supabase = createServerClient();
@@ -90,12 +82,16 @@ if (!rateResult.success) {
     const {
       data: transaction,
       error: txError,
-    } = await supabase.from('stock_transactions').insert(insertPayload).select().single();
+    } = await supabase
+      .from('stock_transactions')
+      .insert(insertPayload)
+      .select()
+      .single();
 
     if (txError || !transaction) {
       return NextResponse.json(
         { error: txError?.message ?? 'Failed to create transaction' },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -106,13 +102,22 @@ if (!rateResult.success) {
     });
 
     if (stockError) {
-      await supabase.from('stock_transactions').delete().eq('id', transaction.id);
-      return NextResponse.json({ error: 'Failed to update stock' }, { status: 500 });
+      // Roll back the inserted transaction if stock update fails
+      await supabase
+        .from('stock_transactions')
+        .delete()
+        .eq('id', transaction.id);
+
+      return NextResponse.json(
+        { error: 'Failed to update stock' },
+        { status: 500 }
+      );
     }
 
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Unexpected server error';
+    const message =
+      error instanceof Error ? error.message : 'Unexpected server error';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
