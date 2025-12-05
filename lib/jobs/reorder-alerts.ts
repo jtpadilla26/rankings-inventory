@@ -6,19 +6,23 @@ type ReorderCandidate = {
   name: string;
   reorder_point: number | null;
   stock_levels: { quantity: number }[] | null;
-  categories: { name: string | null } | null;
+  // Supabase returns categories as an ARRAY, not a single object
+  categories: { name: string | null }[] | null;
 };
 
 async function sendReorderAlerts(items: ReorderCandidate[]): Promise<void> {
   // Placeholder implementation – integrate with email/Slack provider when available.
   for (const item of items) {
+    const quantity = item.stock_levels?.[0]?.quantity ?? null;
+    const categoryName = item.categories?.[0]?.name ?? null;
+
     // eslint-disable-next-line no-console
     console.info('Reorder alert', {
       id: item.id,
       name: item.name,
       reorder_point: item.reorder_point,
-      quantity: item.stock_levels?.[0]?.quantity ?? null,
-      category: item.categories?.name ?? null,
+      quantity,
+      category: categoryName,
     });
   }
 }
@@ -48,5 +52,6 @@ export async function checkReorderPoints(): Promise<void> {
     return;
   }
 
+  // items is any[] from Supabase; we assert it matches ReorderCandidate[]
   await sendReorderAlerts(items as ReorderCandidate[]);
 }
