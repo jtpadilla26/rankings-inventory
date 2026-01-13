@@ -1,27 +1,11 @@
 // lib/importers/items.ts
 import * as XLSX from "xlsx";
-import { sanitizeItemInput } from "@/lib/sanitizeItem";
+import { sanitizeInventoryItem } from "@/lib/sanitizeInventoryItem";
 import { supabase } from "@/lib/supabase/client";
 
 // Helpers: case-insensitive maps
 const norm = (s?: string) => (s ?? "").trim().replace(/\s+/g, " ");
 const normCI = (s?: string) => norm(s).toLowerCase();
-
-export async function getCategoryMap() {
-  const { data, error } = await supabase.from("categories").select("id,name");
-  if (error) throw error;
-  const map = new Map<string, string>();
-  (data ?? []).forEach((c) => map.set(normCI(c.name), c.id));
-  return map;
-}
-
-export async function getLocationMap() {
-  const { data, error } = await supabase.from("locations").select("id,name");
-  if (error) throw error;
-  const map = new Map<string, string>();
-  (data ?? []).forEach((l) => map.set(normCI(l.name), l.id));
-  return map;
-}
 
 // Parse a File (xlsx OR csv) into rows
 export async function parseFile(file: File) {
@@ -33,50 +17,40 @@ export async function parseFile(file: File) {
 }
 
 /**
- * Map rows → inventory_items payload, resolve names to ids,
- * ignore total_value, allow blank price (becomes null).
+ * Map rows → inventory_items payload, ignore total_value, allow blank price (becomes null).
  *
  * Expected column headers from your template/sheets:
- * name, category, units, unit_type, price_per_unit, total_value, location, date_added, notes
+ * name, category, units, unit_type, price_per_unit, total_value (ignored), location, date_added, notes,
+ * expiration_date, batch_lot, opened_at, msds_url, low_stock_threshold
  */
 export async function buildPayload(rows: any[]) {
-  const cats = await getCategoryMap();
-  const locs = await getLocationMap();
-
   const payload = [];
   const errors: string[] = [];
 
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
 
-    const categoryName = norm(r.category);
-    const locationName = norm(r.location);
-
-    const category_id = categoryName ? cats.get(normCI(categoryName)) ?? null : null;
-    const default_location_id = locationName ? locs.get(normCI(locationName)) ?? null : null;
-
-    // collect helpful errors but keep processing
-    if (categoryName && !category_id) {
-      errors.push(`Row ${i + 2}: Unknown category "${categoryName}"`);
-    }
-    if (locationName && !default_location_id) {
-      errors.push(`Row ${i + 2}: Unknown location "${locationName}"`);
+    // Validate required fields
+    if (!r.name || String(r.name).trim() === '') {
+      errors.push(`Row ${i + 2}: Name is required`);
+      continue;
     }
 
-    const item = sanitizeItemInput({
+    const item = sanitizeInventoryItem({
       name: r.name,
-      category_id,
-      item_type: r.unit_type || null,        // "consumable" | "asset"
-      unit: r.units || null,
-      price_per_unit: r.price_per_unit,      // "" → null handled by sanitizer
-      reorder_point: r.reorder_point,
-      par_level: r.par_level,
-      default_location_id,
-      supplier_id: null,
-      sku: r.sku,
-      description: r.notes,
-      is_active: true,
-      // IMPORTANT: we do NOT pass total_value here
+      category: r.category || null,
+      units: r.units || null,
+      unit_type: r.unit_type || null,
+      price_per_unit: r.price_per_unit || null,
+      location: r.location || null,
+      date_added: r.date_added || null,
+      notes: r.notes || null,
+      expiration_date: r.expiration_date || null,
+      batch_lot: r.batch_lot || null,
+      opened_at: r.opened_at || null,
+      msds_url: r.msds_url || null,
+      low_stock_threshold: r.low_stock_threshold || null,
+      // IMPORTANT: we do NOT pass total_value here - it's stripped by sanitizer
     });
 
     payload.push(item);
@@ -85,11 +59,12 @@ export async function buildPayload(rows: any[]) {
   return { payload, errors };
 }
 
-/** Upsert into your real table */
+/** Insert items into inventory_items table */
 export async function upsertItems(payload: any[]) {
   if (!payload.length) return { error: null, count: 0 };
+  // Use insert instead of upsert to avoid conflicts with generated columns
   const { error, count } = await supabase
     .from("inventory_items")
-    .upsert(payload, { onConflict: "sku" }); // change conflict key if needed
+    .insert(payload);
   return { error, count: count ?? payload.length };
 }
