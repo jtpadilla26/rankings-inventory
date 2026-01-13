@@ -23,11 +23,11 @@ export default function ImportItemsPage() {
         setLog((x) => [...x, "Issues found:", ...errors]);
       }
 
-      setLog((x) => [...x, `Upserting ${payload.length} items…`]);
+      setLog((x) => [...x, `Inserting ${payload.length} items…`]);
       const { error, count } = await upsertItems(payload);
       if (error) throw new Error(error.message);
 
-      setLog((x) => [...x, `Done. Upserted ${count} items.`]);
+      setLog((x) => [...x, `Done. Inserted ${count} items.`]);
     } catch (err: any) {
       setLog((x) => [...x, `ERROR: ${err.message || String(err)}`]);
     } finally {
@@ -40,7 +40,7 @@ export default function ImportItemsPage() {
       <h1 className="text-2xl font-semibold">Import Items</h1>
       <p className="opacity-80">
         Upload your Excel/CSV. Columns supported:
-        <code className="ml-2">name, category, units, unit_type, price_per_unit, total_value (ignored), location, date_added, notes</code>
+        <code className="ml-2">name, category, units, unit_type, price_per_unit, total_value (ignored), location, date_added, notes, expiration_date, batch_lot, opened_at, msds_url, low_stock_threshold</code>
       </p>
 
       <input type="file" accept=".xlsx,.xls,.csv" disabled={busy} onChange={onFile}

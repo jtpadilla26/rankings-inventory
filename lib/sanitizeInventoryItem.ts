@@ -3,7 +3,7 @@ export type InventoryItemUpsert = {
   id?: string;
   name: string;
   category?: string | null;
-  units?: string | null;
+  units?: number | null;
   unit_type?: "consumable" | "asset" | null;
   price_per_unit?: number | null;
   location?: string | null;
@@ -13,6 +13,7 @@ export type InventoryItemUpsert = {
   batch_lot?: string | null;
   opened_at?: string | null;
   msds_url?: string | null;
+  low_stock_threshold?: number | null;
 };
 
 const num = (v: any) =>
@@ -45,7 +46,7 @@ export function sanitizeInventoryItem(input: Record<string, any>): InventoryItem
     id: str(rest.id) ?? undefined,
     name: String(rest.name ?? "").trim(),
     category: str(rest.category),
-    units: str(rest.units),
+    units: num(rest.units),
     unit_type: (rest.unit_type ?? null) as "consumable" | "asset" | null,
     price_per_unit: num(rest.price_per_unit ?? _oldPrice), // "" -> null
     location: str(rest.location),
@@ -55,5 +56,6 @@ export function sanitizeInventoryItem(input: Record<string, any>): InventoryItem
     batch_lot: str(rest.batch_lot),
     opened_at: dateish(rest.opened_at),
     msds_url: str(rest.msds_url),
+    low_stock_threshold: num(rest.low_stock_threshold),
   };
 }
