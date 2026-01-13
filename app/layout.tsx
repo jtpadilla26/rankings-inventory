@@ -48,12 +48,21 @@ export default function RootLayout({
                   <Link href="/" className="text-lg font-semibold">
                     Rankins Inventory
                   </Link>
-                  <nav className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <nav className="flex items-center gap-6 text-sm text-muted-foreground">
+                    <Link href="/" className="hover:text-foreground transition-colors">
+                      Dashboard
+                    </Link>
                     <Link href="/inventory" className="hover:text-foreground transition-colors">
                       Inventory
                     </Link>
+                    <Link href="/items/import" className="hover:text-foreground transition-colors">
+                      Import
+                    </Link>
+                    <Link href="/checkout" className="hover:text-foreground transition-colors">
+                      Checkout
+                    </Link>
                     <Link href="/settings/low-stock" className="hover:text-foreground transition-colors">
-                      Stock Rules
+                      Settings
                     </Link>
                   </nav>
                 </div>
