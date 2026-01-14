@@ -8,7 +8,7 @@ export async function GET() {
 
   // 1) Get all categories in use in the inventory
   const { data: itemRows, error: itemsError } = await supabase
-    .from('inventory_items')
+    .from('inventory_items_enriched')
     .select('category');
 
   if (itemsError) {

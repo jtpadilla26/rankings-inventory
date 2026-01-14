@@ -110,6 +110,7 @@ export function InventoryManagement({ initialItems }: Props) {
           open={showAddModal}
           onClose={() => setShowAddModal(false)}
           onItemAdded={handleItemAdded}
+          existingCategories={categories.filter(c => c !== 'all')}
         />
       </div>
     );
@@ -201,6 +202,7 @@ export function InventoryManagement({ initialItems }: Props) {
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         onItemAdded={handleItemAdded}
+        existingCategories={[]}
       />
     </div>
   );

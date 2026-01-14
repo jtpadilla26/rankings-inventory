@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 import { InventoryItem } from '@/lib/types';
 import { DashboardCharts } from '@/components/dashboard/DashboardCharts';
 import { BarChart3 } from 'lucide-react';
@@ -7,6 +7,7 @@ import { BarChart3 } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 async function getDashboardData() {
+  const supabase = createServerClient();
   const { data, error } = await supabase
     .from('inventory_items_enriched')
     .select('*')

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 import { InventoryManagement } from '@/components/inventory/InventoryManagement';
 import type { InventoryItem } from '@/lib/types';
 import { Package } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Package } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 async function getInventoryData() {
+  const supabase = createServerClient();
   const { data, error } = await supabase
     .from('inventory_items_enriched')
     .select('*')

@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 import { InventoryItem } from '@/lib/types';
 import TotalInventoryValueCard from '@/components/dashboard/TotalInventoryValueCard';
 import LowStockCard from '@/components/dashboard/LowStockCard';
@@ -11,6 +11,7 @@ import { Package, TrendingUp, AlertTriangle } from 'lucide-react';
 export const dynamic = 'force-dynamic';
 
 async function getInventorySummary() {
+  const supabase = createServerClient();
   const { data, error } = await supabase
     .from('inventory_items_enriched')
     .select('*')
