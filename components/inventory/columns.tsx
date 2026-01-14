@@ -81,7 +81,6 @@ function ActionsCell({
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete item',
-        variant: 'destructive',
       });
     } finally {
       setIsDeleting(false);
@@ -113,7 +112,6 @@ function ActionsCell({
       toast({
         title: 'Error',
         description: error.message || 'Failed to adjust stock',
-        variant: 'destructive',
       });
     }
   };

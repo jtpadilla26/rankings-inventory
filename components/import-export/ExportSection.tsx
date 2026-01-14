@@ -34,7 +34,6 @@ export function ExportSection() {
       toast({
         title: 'Error',
         description: error.message || 'Failed to export inventory',
-        variant: 'destructive',
       });
     } finally {
       setIsExporting(false);

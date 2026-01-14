@@ -39,7 +39,6 @@ export function MainNav() {
       toast({
         title: 'Error',
         description: 'Failed to log out. Please try again.',
-        variant: 'destructive',
       });
     } finally {
       setIsLoggingOut(false);

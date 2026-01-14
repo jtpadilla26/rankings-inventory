@@ -55,7 +55,6 @@ export function AddItemModal({ open, onClose, onItemAdded }: Props) {
       toast({
         title: 'Validation Error',
         description: 'Item name is required',
-        variant: 'destructive',
       });
       setIsSubmitting(false);
       return;
@@ -65,7 +64,6 @@ export function AddItemModal({ open, onClose, onItemAdded }: Props) {
       toast({
         title: 'Validation Error',
         description: 'Units cannot be negative',
-        variant: 'destructive',
       });
       setIsSubmitting(false);
       return;
@@ -75,7 +73,6 @@ export function AddItemModal({ open, onClose, onItemAdded }: Props) {
       toast({
         title: 'Validation Error',
         description: 'Price cannot be negative',
-        variant: 'destructive',
       });
       setIsSubmitting(false);
       return;
@@ -102,7 +99,6 @@ export function AddItemModal({ open, onClose, onItemAdded }: Props) {
       toast({
         title: 'Error',
         description: error.message || 'Failed to add item',
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

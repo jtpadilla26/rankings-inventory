@@ -57,7 +57,6 @@ export function ImportSection() {
       toast({
         title: 'Import Failed',
         description: error.message || 'Failed to import items',
-        variant: 'destructive',
       });
     } finally {
       setIsImporting(false);
