@@ -1,8 +1,8 @@
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { InventoryItem } from '@/lib/types';
-import { TotalInventoryValueCard } from '@/components/dashboard/TotalInventoryValueCard';
-import { LowStockCard } from '@/components/dashboard/LowStockCard';
+import TotalInventoryValueCard from '@/components/dashboard/TotalInventoryValueCard';
+import LowStockCard from '@/components/dashboard/LowStockCard';
 import { InventorySnapshot } from '@/components/home/InventorySnapshot';
 import { ExpirationSnapshot } from '@/components/home/ExpirationSnapshot';
 import { WhatsLowModule } from '@/components/home/WhatsLowModule';
