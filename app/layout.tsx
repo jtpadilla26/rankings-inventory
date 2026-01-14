@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Manrope } from 'next/font/google';
 
 import './globals.css';
@@ -7,6 +6,7 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { ThemeProvider } from '@/components/theme-provider';
 import { QueryProvider } from '@/components/query-provider';
+import { MainNav } from '@/components/navigation/MainNav';
 
 const manrope = Manrope({
   subsets: ['latin'],
@@ -42,34 +42,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <QueryProvider>
-            <div className="min-h-screen bg-background text-foreground">
-              <header className="border-b bg-card/50 backdrop-blur">
-                <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-                  <Link href="/" className="text-lg font-semibold">
-                    Rankins Inventory
-                  </Link>
-                  <nav className="flex items-center gap-6 text-sm text-muted-foreground">
-                    <Link href="/" className="hover:text-foreground transition-colors">
-                      Dashboard
-                    </Link>
-                    <Link href="/inventory" className="hover:text-foreground transition-colors">
-                      Inventory
-                    </Link>
-                    <Link href="/items/import" className="hover:text-foreground transition-colors">
-                      Import
-                    </Link>
-                    <Link href="/checkout" className="hover:text-foreground transition-colors">
-                      Checkout
-                    </Link>
-                    <Link href="/settings/low-stock" className="hover:text-foreground transition-colors">
-                      Settings
-                    </Link>
-                  </nav>
-                </div>
-              </header>
-              <div className="mx-auto w-full max-w-5xl">
+            <div className="min-h-screen bg-background">
+              <MainNav />
+              <main className="container mx-auto py-6">
                 {children}
-              </div>
+              </main>
             </div>
             <Toaster />
           </QueryProvider>
