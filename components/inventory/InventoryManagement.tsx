@@ -23,12 +23,20 @@ export function InventoryManagement({ initialItems }: Props) {
 
   // Extract unique categories and locations
   const categories = useMemo(() => {
-    const cats = new Set(items.map(item => item.category).filter(Boolean));
+    const cats = new Set(
+      items
+        .map(item => item.category)
+        .filter((cat): cat is string => cat != null && cat !== '')
+    );
     return ['all', ...Array.from(cats).sort()];
   }, [items]);
 
   const locations = useMemo(() => {
-    const locs = new Set(items.map(item => item.location).filter(Boolean));
+    const locs = new Set(
+      items
+        .map(item => item.location)
+        .filter((loc): loc is string => loc != null && loc !== '')
+    );
     return ['all', ...Array.from(locs).sort()];
   }, [items]);
 
@@ -129,9 +137,11 @@ export function InventoryManagement({ initialItems }: Props) {
           className="h-10 px-3 rounded-md border border-input bg-background text-sm"
         >
           <option value="all">All Categories</option>
-          {categories.filter(c => c !== 'all').map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
+          {categories
+            .filter((c): c is string => c !== 'all' && typeof c === 'string')
+            .map(cat => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
         </select>
 
         <select
@@ -140,9 +150,11 @@ export function InventoryManagement({ initialItems }: Props) {
           className="h-10 px-3 rounded-md border border-input bg-background text-sm"
         >
           <option value="all">All Locations</option>
-          {locations.filter(l => l !== 'all').map(loc => (
-            <option key={loc} value={loc}>{loc}</option>
-          ))}
+          {locations
+            .filter((l): l is string => l !== 'all' && typeof l === 'string')
+            .map(loc => (
+              <option key={loc} value={loc}>{loc}</option>
+            ))}
         </select>
 
         <select
