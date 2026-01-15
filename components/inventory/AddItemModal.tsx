@@ -26,6 +26,20 @@ type Props = {
   existingCategories?: string[];
 };
 
+const getStringOrNull = (value: FormDataEntryValue | null) => {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length ? trimmed : null;
+};
+
+const getSupabaseErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error) {
+    const details = (error as { details?: string }).details;
+    return details ? `${error.message} (${details})` : error.message;
+  }
+  return fallback;
+};
+
 export function AddItemModal({ open, onClose, onItemAdded, existingCategories = [] }: Props) {
   const router = useRouter();
   const { toast } = useToast();
@@ -37,18 +51,20 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
 
     const formData = new FormData(e.currentTarget);
     const data = {
-      name: formData.get('name') as string,
-      category: (formData.get('category') as string) || null,
+      name: (formData.get('name') as string).trim(),
+      category: getStringOrNull(formData.get('category')),
       units: Number(formData.get('units')) || 0,
-      unit_type: formData.get('unit_type') as string || null,
+      unit_type: getStringOrNull(formData.get('unit_type')),
       price_per_unit: Number(formData.get('price_per_unit')) || 0,
-      location: formData.get('location') as string || null,
-      date_added: formData.get('date_added') as string || new Date().toISOString().split('T')[0],
-      notes: formData.get('notes') as string || null,
-      expiration_date: formData.get('expiration_date') as string || null,
-      batch_lot: formData.get('batch_lot') as string || null,
-      opened_at: formData.get('opened_at') as string || null,
-      msds_url: formData.get('msds_url') as string || null,
+      location: getStringOrNull(formData.get('location')),
+      date_added:
+        getStringOrNull(formData.get('date_added')) ??
+        new Date().toISOString().split('T')[0],
+      notes: getStringOrNull(formData.get('notes')),
+      expiration_date: getStringOrNull(formData.get('expiration_date')),
+      batch_lot: getStringOrNull(formData.get('batch_lot')),
+      opened_at: getStringOrNull(formData.get('opened_at')),
+      msds_url: getStringOrNull(formData.get('msds_url')),
       low_stock_threshold: formData.get('low_stock_threshold') ? Number(formData.get('low_stock_threshold')) : null,
     };
 
@@ -97,10 +113,10 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
       onItemAdded(newItem as InventoryItem);
       router.refresh();
     } catch (error) {
-      console.error('Error adding item:', error);
+      console.error('Error adding item:', { error, payload: data });
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to add item',
+        description: getSupabaseErrorMessage(error, 'Failed to add item'),
       });
     } finally {
       setIsSubmitting(false);
