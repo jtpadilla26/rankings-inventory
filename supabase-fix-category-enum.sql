@@ -1,30 +1,43 @@
 -- ============================================================================
 -- Fix Category Column - Change from ENUM to TEXT
 -- ============================================================================
--- This migration changes the inventory_items.category column from an ENUM
--- type to TEXT to allow flexible category values including custom categories.
+-- This migration changes ALL category columns from ENUM to TEXT to allow
+-- flexible category values including custom categories.
+--
+-- Tables affected:
+-- - inventory_items.category
+-- - activity_log.category (if exists)
 --
 -- Since the column is used by views, we need to:
 -- 1. Drop dependent views
--- 2. Change the column type
--- 3. Recreate the views
+-- 2. Change column types in ALL tables
+-- 3. Drop the ENUM type
+-- 4. Recreate the views
 -- ============================================================================
 
 -- Step 1: Drop dependent views (in reverse dependency order)
 DROP VIEW IF EXISTS inventory_summary;
 DROP VIEW IF EXISTS inventory_items_enriched;
 
--- Step 2: Alter the column type to TEXT
+-- Step 2: Alter the category column type to TEXT in all tables
 ALTER TABLE inventory_items
 ALTER COLUMN category TYPE TEXT;
 
--- Step 3: Drop the old ENUM type if it exists
+-- Check if activity_log table exists and alter it too
 DO $$
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_type WHERE typname = 'inventory_category') THEN
-        DROP TYPE inventory_category;
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'activity_log') THEN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'activity_log' AND column_name = 'category'
+        ) THEN
+            ALTER TABLE activity_log ALTER COLUMN category TYPE TEXT;
+        END IF;
     END IF;
 END $$;
+
+-- Step 3: Drop the old ENUM type with CASCADE to handle all dependencies
+DROP TYPE IF EXISTS inventory_category CASCADE;
 
 -- Step 4: Recreate inventory_items_enriched view
 CREATE OR REPLACE VIEW inventory_items_enriched AS
@@ -72,6 +85,7 @@ FROM
   inventory_items_enriched;
 
 -- Step 6: Verify the change
--- Run this to confirm category is now TEXT:
--- SELECT column_name, data_type FROM information_schema.columns
--- WHERE table_name = 'inventory_items' AND column_name = 'category';
+-- Run this to confirm all category columns are now TEXT:
+-- SELECT table_name, column_name, data_type
+-- FROM information_schema.columns
+-- WHERE column_name = 'category' AND table_schema = 'public';
