@@ -1,7 +1,7 @@
 // app/api/items/[id]/route.ts
 import { NextResponse } from 'next/server';
 
-import { createServerClient } from '@/lib/supabase/server';
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase/server';
 import { sanitizeInventoryItem } from '@/lib/sanitizeInventoryItem';
 
 function validateInventoryItemInput(data: ReturnType<typeof sanitizeInventoryItem>): string | null {
@@ -34,7 +34,7 @@ export async function PUT(req: Request, ctx: RouteContext) {
 
     const { id: _strip, ...payload } = sanitized;
 
-    const supabase = createServerClient();
+    const supabase = createRouteHandlerSupabaseClient();
     const { data: updated, error } = await supabase
       .from('inventory_items')
       .update(payload)
