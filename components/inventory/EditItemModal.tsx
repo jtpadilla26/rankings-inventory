@@ -34,36 +34,51 @@ const getStringOrNull = (value: FormDataEntryValue | null) => {
 };
 
 const getSupabaseErrorMessage = (error: unknown, fallback: string) => {
+  // Extract the error message first
+  let errorMessage = '';
+  let errorDetails = '';
+
   if (error instanceof Error) {
-    const details = (error as { details?: string }).details;
-    return details ? `${error.message} (${details})` : error.message;
-  }
-
-  if (typeof error === 'string' && error.length > 0) {
-    if (error.includes('inventory_category')) {
-      return 'Database schema mismatch: inventory_category type missing. Run supabase-fix-category-enum.sql.';
-    }
-    return error;
-  }
-
-  if (typeof error === 'object' && error !== null) {
+    errorMessage = error.message;
+    errorDetails = (error as { details?: string }).details || '';
+  } else if (typeof error === 'string' && error.length > 0) {
+    errorMessage = error;
+  } else if (typeof error === 'object' && error !== null) {
     const message = (error as { message?: unknown }).message;
     const details = (error as { details?: unknown }).details;
+
     if (typeof message === 'string' && message.length > 0) {
-      if (typeof details === 'string' && details.length > 0) {
-        return `${message} (${details})`;
-      }
-      return message;
+      errorMessage = message;
     }
 
-    try {
-      return JSON.stringify(error);
-    } catch {
-      return fallback;
+    if (typeof details === 'string' && details.length > 0) {
+      errorDetails = details;
     }
+
+    // If we couldn't extract a message, try stringifying
+    if (!errorMessage) {
+      try {
+        errorMessage = JSON.stringify(error);
+      } catch {
+        errorMessage = fallback;
+      }
+    }
+  } else {
+    return fallback;
   }
 
-  return fallback;
+  // Check if the error is related to inventory_category type
+  const fullError = `${errorMessage} ${errorDetails}`.toLowerCase();
+  if (fullError.includes('inventory_category') || fullError.includes('type') && fullError.includes('does not exist')) {
+    return 'Database schema error: The "inventory_category" type constraint is blocking this update. Please contact your administrator to run the supabase-fix-category-enum.sql migration to fix this issue.';
+  }
+
+  // Return the formatted message
+  if (errorDetails) {
+    return `${errorMessage} (${errorDetails})`;
+  }
+
+  return errorMessage || fallback;
 };
 
 export function EditItemModal({ open, onClose, onItemUpdated, item, existingCategories = [] }: Props) {
