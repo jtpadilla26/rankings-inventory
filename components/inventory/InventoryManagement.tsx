@@ -212,7 +212,7 @@ export function InventoryManagement({ initialItems }: Props) {
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         onItemAdded={handleItemAdded}
-        existingCategories={[]}
+        existingCategories={categories.filter(c => c !== 'all')}
       />
 
       {/* Edit Item Modal */}
@@ -224,7 +224,7 @@ export function InventoryManagement({ initialItems }: Props) {
         }}
         onItemUpdated={handleItemUpdated}
         item={editingItem}
-        existingCategories={[]}
+        existingCategories={categories.filter(c => c !== 'all')}
       />
     </div>
   );

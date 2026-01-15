@@ -1,22 +1,16 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
+import {
+  createRouteHandlerClient,
+  createServerComponentClient,
+} from '@supabase/auth-helpers-nextjs';
+import type { Session, SupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
-const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? '';
-const SUPABASE_SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_KEY ??
-  process.env.SUPABASE_SERVICE_ROLE_KEY ??
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-  process.env.VITE_SUPABASE_ANON_KEY ??
-  '';
-
-function assertConfig() {
-  if (!SUPABASE_URL) {
-    throw new Error('Supabase URL is not configured');
+function assertSupabaseEnv() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured');
   }
-  if (!SUPABASE_SERVICE_KEY) {
-    throw new Error('Supabase service key is not configured');
+  if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured');
   }
 }
 
@@ -25,14 +19,14 @@ export function createServerClient(): SupabaseClient {
     throw new Error('createServerClient can only be used on the server');
   }
 
-  assertConfig();
+  assertSupabaseEnv();
 
-  return createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  });
+  return createServerComponentClient({ cookies });
+}
+
+export function createRouteHandlerSupabaseClient(): SupabaseClient {
+  assertSupabaseEnv();
+  return createRouteHandlerClient({ cookies });
 }
 
 export async function getServerSession(): Promise<Session> {

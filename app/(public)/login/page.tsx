@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -24,6 +24,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClientComponentClient();
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +46,9 @@ export default function LoginPage() {
   });
 
   const rememberMe = watch('rememberMe');
+  const redirectedFrom = searchParams.get('redirectedFrom');
+  const redirectTarget =
+    redirectedFrom && redirectedFrom.startsWith('/') ? redirectedFrom : '/home';
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -71,7 +75,7 @@ export default function LoginPage() {
           description: 'You have successfully logged in.',
         });
 
-      router.push('/home');
+        router.push(redirectTarget);
         router.refresh();
       }
     } catch (err) {

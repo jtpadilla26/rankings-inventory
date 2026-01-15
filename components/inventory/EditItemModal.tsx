@@ -108,11 +108,11 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
       onItemUpdated(updatedItem as InventoryItem);
       router.refresh();
       onClose();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error updating item:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update item',
+        description: error instanceof Error ? error.message : 'Failed to update item',
       });
     } finally {
       setIsSubmitting(false);
