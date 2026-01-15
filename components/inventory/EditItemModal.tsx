@@ -40,6 +40,9 @@ const getSupabaseErrorMessage = (error: unknown, fallback: string) => {
   }
 
   if (typeof error === 'string' && error.length > 0) {
+    if (error.includes('inventory_category')) {
+      return 'Database schema mismatch: inventory_category type missing. Run supabase-fix-category-enum.sql.';
+    }
     return error;
   }
 
