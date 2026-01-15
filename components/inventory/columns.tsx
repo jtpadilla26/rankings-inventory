@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import type { ColumnDef } from '@tanstack/react-table';
 import { supabase } from '@/lib/supabase/client';
 import { gbp } from '@/lib/currency';
@@ -45,10 +44,12 @@ function LowBadge({ low }: { low: boolean | null | undefined }) {
 
 function ActionsCell({
   item,
+  onEdit,
   onUpdate,
   onDelete
 }: {
   item: InventoryItem;
+  onEdit: (item: InventoryItem) => void;
   onUpdate: (item: InventoryItem) => void;
   onDelete: (itemId: string) => void;
 }) {
@@ -136,11 +137,15 @@ function ActionsCell({
       >
         <Plus className="h-4 w-4" />
       </Button>
-      <Link href={`/inventory/${item.id}/edit`}>
-        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </Link>
+      <Button
+        size="sm"
+        variant="ghost"
+        onClick={() => onEdit(item)}
+        title="Edit item"
+        className="h-8 w-8 p-0"
+      >
+        <Pencil className="h-4 w-4" />
+      </Button>
       <Button
         size="sm"
         variant="ghost"
@@ -155,6 +160,7 @@ function ActionsCell({
 }
 
 export const inventoryColumns = (
+  onEdit: (item: InventoryItem) => void,
   onUpdate: (item: InventoryItem) => void,
   onDelete: (itemId: string) => void
 ): ColumnDef<InventoryItem>[] => [
@@ -228,6 +234,7 @@ export const inventoryColumns = (
     cell: ({ row }) => (
       <ActionsCell
         item={row.original}
+        onEdit={onEdit}
         onUpdate={onUpdate}
         onDelete={onDelete}
       />
