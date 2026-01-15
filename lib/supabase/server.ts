@@ -2,7 +2,7 @@ import {
   createRouteHandlerClient,
   createServerComponentClient,
 } from '@supabase/auth-helpers-nextjs';
-import type { Session, SupabaseClient } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 
 function assertSupabaseEnv() {
@@ -14,7 +14,7 @@ function assertSupabaseEnv() {
   }
 }
 
-export function createServerClient(): SupabaseClient {
+export function createServerClient() {
   if (typeof window !== 'undefined') {
     throw new Error('createServerClient can only be used on the server');
   }
@@ -24,7 +24,7 @@ export function createServerClient(): SupabaseClient {
   return createServerComponentClient({ cookies });
 }
 
-export function createRouteHandlerSupabaseClient(): SupabaseClient {
+export function createRouteHandlerSupabaseClient() {
   assertSupabaseEnv();
   return createRouteHandlerClient({ cookies });
 }
