@@ -96,11 +96,11 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
 
       onItemAdded(newItem as InventoryItem);
       router.refresh();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error adding item:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to add item',
+        description: error instanceof Error ? error.message : 'Failed to add item',
       });
     } finally {
       setIsSubmitting(false);
