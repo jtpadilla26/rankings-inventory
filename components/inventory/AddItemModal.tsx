@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
+import CategorySelect from './CategorySelect';
 
 type Props = {
   open: boolean;
@@ -29,27 +30,15 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showCustomCategory, setShowCustomCategory] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('');
-
-  useEffect(() => {
-    if (!open) {
-      setShowCustomCategory(false);
-      setSelectedCategory('');
-    }
-  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
-    const categoryValue = showCustomCategory
-      ? formData.get('category_custom') as string
-      : formData.get('category') as string;
     const data = {
       name: formData.get('name') as string,
-      category: categoryValue || null,
+      category: (formData.get('category') as string) || null,
       units: Number(formData.get('units')) || 0,
       unit_type: formData.get('unit_type') as string || null,
       price_per_unit: Number(formData.get('price_per_unit')) || 0,
@@ -145,54 +134,11 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
             {/* Category */}
             <div>
               <Label htmlFor="category">Category</Label>
-              {!showCustomCategory ? (
-                <>
-                  <select
-                    id="category"
-                    name="category"
-                    value={selectedCategory}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === '__custom__') {
-                        setShowCustomCategory(true);
-                        setSelectedCategory('');
-                      } else {
-                        setSelectedCategory(value);
-                      }
-                    }}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    disabled={isSubmitting}
-                  >
-                    <option value="">Select category</option>
-                    {existingCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                    <option value="__custom__">+ Add new category</option>
-                  </select>
-                </>
-              ) : (
-                <div className="flex gap-2">
-                  <Input
-                    id="category_custom"
-                    name="category_custom"
-                    placeholder="Enter new category"
-                    disabled={isSubmitting}
-                    autoFocus
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setShowCustomCategory(false);
-                      setSelectedCategory('');
-                    }}
-                    disabled={isSubmitting}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              )}
+              <CategorySelect
+                name="category"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                required={false}
+              />
             </div>
 
             {/* Location */}

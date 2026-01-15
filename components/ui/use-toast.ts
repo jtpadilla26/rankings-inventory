@@ -123,6 +123,7 @@ type ToastReturn = {
 const toast = (props: ToastOptions): ToastReturn => {
   const id = genId();
   const toastOptions: ToasterToast = {
+    duration: 5000, // Default 5 seconds auto-dismiss
     ...props,
     id,
     open: true,
