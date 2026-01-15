@@ -27,6 +27,11 @@ export default function CategorySelect({
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Update input value when defaultValue prop changes (for Edit modal)
+  useEffect(() => {
+    setInputValue(defaultValue ?? '');
+  }, [defaultValue]);
+
   // Fetch categories from API
   useEffect(() => {
     async function fetchCategories() {
