@@ -1,8 +1,8 @@
-import dynamic from 'next/dynamic';
+import dynamicImport from 'next/dynamic';
 
 export const dynamic = 'force-dynamic';
 
-const LoginClient = dynamic(() => import('./LoginClient'), { ssr: false });
+const LoginClient = dynamicImport(() => import('./LoginClient'), { ssr: false });
 
 export default function LoginPage() {
   return <LoginClient />;
