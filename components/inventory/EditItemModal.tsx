@@ -38,6 +38,28 @@ const getSupabaseErrorMessage = (error: unknown, fallback: string) => {
     const details = (error as { details?: string }).details;
     return details ? `${error.message} (${details})` : error.message;
   }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const message = (error as { message?: unknown }).message;
+    const details = (error as { details?: unknown }).details;
+    if (typeof message === 'string' && message.length > 0) {
+      if (typeof details === 'string' && details.length > 0) {
+        return `${message} (${details})`;
+      }
+      return message;
+    }
+
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return fallback;
+    }
+  }
+
   return fallback;
 };
 
@@ -113,6 +135,9 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
         .single();
 
       if (error) throw error;
+      if (!updatedItem) {
+        throw new Error('Update failed: no data returned');
+      }
 
       toast({
         title: 'Success',
@@ -123,10 +148,9 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
       router.refresh();
       onClose();
     } catch (error) {
-      console.error('Error updating item:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to update item',
+        description: getSupabaseErrorMessage(error, 'Failed to update item'),
       });
       console.error('Error updating item:', { error, payload: data, itemId: item.id });
     } finally {

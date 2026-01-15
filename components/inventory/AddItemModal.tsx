@@ -37,6 +37,28 @@ const getSupabaseErrorMessage = (error: unknown, fallback: string) => {
     const details = (error as { details?: string }).details;
     return details ? `${error.message} (${details})` : error.message;
   }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    const message = (error as { message?: unknown }).message;
+    const details = (error as { details?: unknown }).details;
+    if (typeof message === 'string' && message.length > 0) {
+      if (typeof details === 'string' && details.length > 0) {
+        return `${message} (${details})`;
+      }
+      return message;
+    }
+
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return fallback;
+    }
+  }
+
   return fallback;
 };
 
@@ -113,10 +135,10 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
       onItemAdded(newItem as InventoryItem);
       router.refresh();
     } catch (error) {
-      console.error('Error adding item:', error);
+      console.error('Error adding item:', { error, payload: data });
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to add item',
+        description: getSupabaseErrorMessage(error, 'Failed to add item'),
       });
     } finally {
       setIsSubmitting(false);
