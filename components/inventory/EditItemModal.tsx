@@ -123,9 +123,10 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
       router.refresh();
       onClose();
     } catch (error) {
+      console.error('Error updating item:', error);
       toast({
         title: 'Error',
-        description: getSupabaseErrorMessage(error, 'Failed to update item'),
+        description: error instanceof Error ? error.message : 'Failed to update item',
       });
       console.error('Error updating item:', { error, payload: data, itemId: item.id });
     } finally {
