@@ -117,6 +117,10 @@ export function AddItemModal({ open, onClose, onItemAdded, existingCategories = 
       toast({
         title: 'Error',
         description: getSupabaseErrorMessage(error, 'Failed to add item'),
+      console.error('Error adding item:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to add item',
       });
     } finally {
       setIsSubmitting(false);
