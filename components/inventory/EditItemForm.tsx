@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 
 import { supabase } from '@/lib/supabase/client';
 import type { InventoryItem } from '@/lib/types';
+import CategorySelect from './CategorySelect';
 
 const toNumOrNull = (v: FormDataEntryValue | null) => {
   if (!v) return null;
@@ -92,9 +93,9 @@ export default function EditItemForm({ item }: Props) {
         </div>
         <div className="space-y-1">
           <label className="text-sm">Category</label>
-          <input
+          <CategorySelect
             name="category"
-            defaultValue={item.category ?? ''}
+            defaultValue={item.category}
             className="w-full rounded border px-2 py-2"
           />
         </div>
