@@ -134,6 +134,13 @@ const toast = (props: ToastOptions): ToastReturn => {
     toast: toastOptions,
   });
 
+  // Schedule auto-dismiss after duration
+  if (toastOptions.duration && toastOptions.duration > 0) {
+    setTimeout(() => {
+      dispatch({ type: 'DISMISS_TOAST', toastId: id });
+    }, toastOptions.duration);
+  }
+
   return {
     id,
     dismiss: () => dispatch({ type: 'DISMISS_TOAST', toastId: id }),
