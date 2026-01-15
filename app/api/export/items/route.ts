@@ -1,4 +1,5 @@
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
 import { readFile } from "fs/promises";
