@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import InventoryTable from '@/components/inventory/InventoryTable';
 import { inventoryColumns } from '@/components/inventory/columns';
 import { AddItemModal } from '@/components/inventory/AddItemModal';
+import { EditItemModal } from '@/components/inventory/EditItemModal';
 
 type Props = {
   initialItems: InventoryItem[];
@@ -20,6 +21,8 @@ export function InventoryManagement({ initialItems }: Props) {
   const [locationFilter, setLocationFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
 
   // Extract unique categories and locations
   const categories = useMemo(() => {
@@ -86,8 +89,15 @@ export function InventoryManagement({ initialItems }: Props) {
     setShowAddModal(false);
   };
 
+  const handleEditClick = (item: InventoryItem) => {
+    setEditingItem(item);
+    setShowEditModal(true);
+  };
+
   const handleItemUpdated = (updatedItem: InventoryItem) => {
     setItems(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
+    setShowEditModal(false);
+    setEditingItem(null);
   };
 
   const handleItemDeleted = (itemId: string) => {
@@ -193,7 +203,7 @@ export function InventoryManagement({ initialItems }: Props) {
       ) : (
         <InventoryTable
           data={filteredItems}
-          columns={inventoryColumns(handleItemUpdated, handleItemDeleted)}
+          columns={inventoryColumns(handleEditClick, handleItemUpdated, handleItemDeleted)}
         />
       )}
 
@@ -202,6 +212,18 @@ export function InventoryManagement({ initialItems }: Props) {
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         onItemAdded={handleItemAdded}
+        existingCategories={[]}
+      />
+
+      {/* Edit Item Modal */}
+      <EditItemModal
+        open={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingItem(null);
+        }}
+        onItemUpdated={handleItemUpdated}
+        item={editingItem}
         existingCategories={[]}
       />
     </div>

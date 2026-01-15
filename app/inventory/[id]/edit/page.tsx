@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 
 import EditItemForm from '@/components/inventory/EditItemForm';
-import { supabase } from '@/lib/supabase/client';
+import { createServerClient } from '@/lib/supabase/server';
 import type { InventoryItem } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -11,6 +11,7 @@ type PageProps = {
 };
 
 export default async function EditInventoryItemPage({ params }: PageProps) {
+  const supabase = createServerClient();
   const { data, error } = await supabase
     .from('inventory_items')
     .select('*')
