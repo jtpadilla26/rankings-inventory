@@ -127,6 +127,10 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
       toast({
         title: 'Error',
         description: getSupabaseErrorMessage(error, 'Failed to update item'),
+      console.error('Error updating item:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to update item',
       });
     } finally {
       setIsSubmitting(false);
