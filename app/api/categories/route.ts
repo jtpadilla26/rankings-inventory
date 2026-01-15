@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase/server';
 
 // GET: return all categories sorted by name
 export async function GET() {
-  const supabase = createServerClient();
+  const supabase = createRouteHandlerSupabaseClient();
 
   const { data: categories, error } = await supabase
     .from('categories')
@@ -19,12 +19,12 @@ export async function GET() {
 
 // POST: create a new category
 export async function POST(request: Request) {
-  const supabase = createServerClient();
+  const supabase = createRouteHandlerSupabaseClient();
 
-  const body = await request.json().catch(() => ({} as any));
-  const { name } = body as { name?: string };
+  const body = await request.json().catch(() => null);
+  const name = typeof body === 'object' && body ? (body as { name?: unknown }).name : null;
 
-  if (!name || typeof name !== 'string' || !name.trim()) {
+  if (typeof name !== 'string' || !name.trim()) {
     return NextResponse.json({ error: 'Category name is required' }, { status: 400 });
   }
 

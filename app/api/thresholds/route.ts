@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase/server';
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase/server';
 
 // GET: return one row per category that exists in inventory_items,
 // merged with any saved thresholds in category_thresholds.
 export async function GET() {
-  const supabase = createServerClient();
+  const supabase = createRouteHandlerSupabaseClient();
 
   // 1) Get all categories in use in the inventory
   const { data: itemRows, error: itemsError } = await supabase
@@ -18,7 +18,7 @@ export async function GET() {
   // 2) Get existing category thresholds
   const { data: thresholdRows, error: thresholdsError } = await supabase
     .from('category_thresholds')
-    .select('*');
+    .select('category, default_threshold');
 
   if (thresholdsError) {
     return NextResponse.json({ error: thresholdsError.message }, { status: 500 });
@@ -26,7 +26,7 @@ export async function GET() {
 
   // Build a map: category -> default_threshold
   const thresholdMap = new Map<string, number | null>();
-  (thresholdRows ?? []).forEach((row: any) => {
+  (thresholdRows ?? []).forEach((row) => {
     thresholdMap.set(row.category, row.default_threshold);
   });
 
@@ -34,7 +34,7 @@ export async function GET() {
   const categories = Array.from(
     new Set(
       (itemRows ?? [])
-        .map((r: any) => (r.category == null ? null : String(r.category)))
+        .map((row) => (row.category == null ? null : String(row.category)))
         .filter((c): c is string => !!c && c.trim().length > 0)
     )
   ).sort();
@@ -51,21 +51,23 @@ export async function GET() {
 
 // POST: upsert a single category threshold
 export async function POST(request: Request) {
-  const supabase = createServerClient();
+  const supabase = createRouteHandlerSupabaseClient();
 
-  const body = await request.json().catch(() => ({} as any));
-  const { category, default_threshold } = body as {
-    category?: string;
-    default_threshold?: number | null | string;
-  };
+  const body = await request.json().catch(() => null);
+  const category =
+    typeof body === 'object' && body ? (body as { category?: unknown }).category : null;
+  const defaultThreshold =
+    typeof body === 'object' && body
+      ? (body as { default_threshold?: unknown }).default_threshold
+      : null;
 
   if (!category || typeof category !== 'string') {
     return NextResponse.json({ error: 'Category is required' }, { status: 400 });
   }
 
   let value: number | null = null;
-  if (default_threshold !== null && default_threshold !== undefined && default_threshold !== '') {
-    const n = Number(default_threshold);
+  if (defaultThreshold !== null && defaultThreshold !== undefined && defaultThreshold !== '') {
+    const n = Number(defaultThreshold);
     value = Number.isFinite(n) ? n : null;
   }
 
