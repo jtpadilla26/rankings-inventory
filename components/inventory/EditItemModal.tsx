@@ -39,6 +39,13 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
     setIsSubmitting(true);
 
     const formData = new FormData(e.currentTarget);
+
+    // Handle date_added: keep existing value if empty, or use provided value
+    const dateAddedValue = formData.get('date_added') as string;
+    const finalDateAdded = dateAddedValue && dateAddedValue.trim() !== ''
+      ? dateAddedValue
+      : (item.date_added || new Date().toISOString().split('T')[0]);
+
     const data = {
       name: formData.get('name') as string,
       category: formData.get('category') as string || null,
@@ -46,7 +53,7 @@ export function EditItemModal({ open, onClose, onItemUpdated, item, existingCate
       unit_type: formData.get('unit_type') as string || null,
       price_per_unit: Number(formData.get('price_per_unit')) || 0,
       location: formData.get('location') as string || null,
-      date_added: formData.get('date_added') as string || null,
+      date_added: finalDateAdded,
       notes: formData.get('notes') as string || null,
       expiration_date: formData.get('expiration_date') as string || null,
       batch_lot: formData.get('batch_lot') as string || null,
