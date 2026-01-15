@@ -14,9 +14,9 @@ const Toaster = () => {
   const { toasts } = useToast();
 
   return (
-    <ToastProvider duration={5000}>
+    <ToastProvider>
       {toasts.map(({ id, title, description, action, ...toast }) => (
-        <Toast key={id} {...toast}>
+        <Toast key={id} duration={toast.duration || 10000} {...toast}>
           <div className="grid gap-1">
             {title && <ToastTitle>{title}</ToastTitle>}
             {description && <ToastDescription>{description}</ToastDescription>}
