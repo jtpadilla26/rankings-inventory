@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useCategories } from './useCategories';
 
 type Category = {
   id: string;
@@ -20,40 +21,22 @@ export default function CategorySelect({
   className = '',
   required = false
 }: Props) {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { categories, loading } = useCategories();
   const [inputValue, setInputValue] = useState(defaultValue ?? '');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [isFiltering, setIsFiltering] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Update input value when defaultValue prop changes (for Edit modal)
   useEffect(() => {
     setInputValue(defaultValue ?? '');
+    setIsFiltering(false);
   }, [defaultValue]);
-
-  // Fetch categories from API
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const response = await fetch('/api/categories');
-        if (response.ok) {
-          const data = await response.json();
-          setCategories(data);
-          setFilteredCategories(data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch categories:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCategories();
-  }, []);
 
   // Filter categories based on input
   useEffect(() => {
-    if (inputValue.trim() === '') {
+    if (!isFiltering || inputValue.trim() === '') {
       setFilteredCategories(categories);
     } else {
       const filtered = categories.filter((cat) =>
@@ -76,15 +59,18 @@ export default function CategorySelect({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
+    setIsFiltering(true);
     setShowDropdown(true);
   };
 
   const handleCategorySelect = (categoryName: string) => {
     setInputValue(categoryName);
+    setIsFiltering(true);
     setShowDropdown(false);
   };
 
   const handleFocus = () => {
+    setIsFiltering(false);
     setShowDropdown(true);
   };
 

@@ -1,24 +1,7 @@
 // app/api/checkout/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createRouteHandlerSupabaseClient } from '@/lib/supabase/server';
 import { z } from 'zod';
-
-const url =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.VITE_SUPABASE_URL ||
-  process.env.SUPABASE_URL;
-
-const serviceKey =
-  process.env.SUPABASE_SERVICE_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY;
-
-if (!url || !serviceKey) {
-  throw new Error('Supabase credentials are not configured for the checkout API route.');
-}
-
-const supabase = createClient(url, serviceKey);
 
 const checkoutItemSchema = z.object({
   item_id: z.string().uuid(),
@@ -27,7 +10,6 @@ const checkoutItemSchema = z.object({
 });
 
 const checkoutSchema = z.object({
-  user_id: z.string().uuid(),
   purpose: z.string().trim().min(1, 'Purpose is required'),
   return_date: z
     .string()
@@ -93,6 +75,13 @@ export async function POST(req: Request) {
   }
 
   try {
+    const supabase = createRouteHandlerSupabaseClient();
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !authData.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const itemIds = Array.from(new Set(data.items.map((item) => item.item_id)));
     const locationIds = Array.from(new Set(data.items.map((item) => item.location_id)));
 
@@ -127,7 +116,7 @@ export async function POST(req: Request) {
     const { data: checkout, error: checkoutError } = await supabase
       .from('checkouts')
       .insert({
-        user_id: data.user_id,
+        user_id: authData.user.id,
         purpose: data.purpose,
         return_date: normalizedReturnDate,
       })
