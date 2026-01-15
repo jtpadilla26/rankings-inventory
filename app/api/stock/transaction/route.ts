@@ -2,11 +2,21 @@
 import { NextResponse } from 'next/server';
 
 import { rateLimit } from '@/lib/rate-limiter';
-import { createServerClient, getServerSession } from '@/lib/supabase/server';
+import { createRouteHandlerSupabaseClient, getServerSession } from '@/lib/supabase/server';
 
 const limiter = rateLimit({ limit: 100 });
 
-function validateTransactionInput(body: Record<string, any>): string | null {
+type TransactionPayload = {
+  item_id?: string;
+  type?: string;
+  quantity?: number | string;
+  unit_cost?: number | string | null;
+  location_id?: string | null;
+  notes?: string | null;
+  reference_id?: string | null;
+};
+
+function validateTransactionInput(body: TransactionPayload | null): string | null {
   if (!body || typeof body !== 'object') {
     return 'Invalid payload';
   }
@@ -15,7 +25,7 @@ function validateTransactionInput(body: Record<string, any>): string | null {
     return 'Item ID is required';
   }
 
-  if (!['in', 'out', 'adjustment', 'count'].includes(body.type)) {
+  if (!['in', 'out', 'adjustment', 'count'].includes(body.type ?? '')) {
     return 'Transaction type is invalid';
   }
 
@@ -46,7 +56,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const body = await req.json();
+    const body = (await req.json()) as TransactionPayload;
     const validationError = validateTransactionInput(body);
 
     if (validationError) {
@@ -66,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const supabase = createServerClient();
+    const supabase = createRouteHandlerSupabaseClient();
 
     const insertPayload = {
       item_id: body.item_id,
