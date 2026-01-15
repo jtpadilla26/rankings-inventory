@@ -1,15 +1,12 @@
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import XlsxPopulate from "xlsx-populate";
 import { readFile } from "fs/promises";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  (process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)!
-);
+import { createRouteHandlerSupabaseClient } from "@/lib/supabase/server";
 
 export async function GET() {
+  const supabase = createRouteHandlerSupabaseClient();
   try {
     const buf = await readFile(process.cwd() + "/public/templates/items_template.xlsx");
     const wb = await XlsxPopulate.fromDataAsync(buf);
@@ -29,8 +26,8 @@ export async function GET() {
     const uniqueCategories = Array.from(
       new Set(
         (items ?? [])
-          .map((item: any) => item.category)
-          .filter((cat: any) => cat != null && cat !== '')
+          .map((item) => item.category)
+          .filter((cat): cat is string => cat != null && cat !== '')
       )
     ).sort();
 
@@ -46,7 +43,8 @@ export async function GET() {
         "Content-Disposition":"attachment; filename=rankins-items.xlsx"
       }
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e.message ?? "export failed" }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "export failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
